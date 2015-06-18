@@ -1,1 +1,1 @@
-# speculum - stream concurrently
+# speculum - transform concurrently
