@@ -1,20 +1,3 @@
-# speculum - transform concurrently
-
-The **speculum** Node package provides a readable stream which orchestrates a read stream and a number of transform streams to transform data from a single source concurrently. **speculum** can save time, if the ordering of the emitted results is irrelevant.
-
-[![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
-
-Time `T` which the sequential stream takes to perform its tasks grows linearly with the number `N` of requests `R`:
-
-`T=N*R`
-
-Concurrent streams divide the time spent by `X`:
-
-`T=(N*R)/X`
-
-## Example
-
-```js
 var speculum = require('./')
 var stream = require('stream')
 var util = require('util')
@@ -74,16 +57,3 @@ function measure (x, cb) {
 measure(1, function (er) {
   measure(5, function (er) {})
 })
-```
-
-## Installation
-
-With [npm](https://npmjs.org/package/speculum) do:
-
-```
-$ npm install speculum
-```
-
-## License
-
-[MIT License](https://raw.github.com/michaelnisi/speculum/master/LICENSE)

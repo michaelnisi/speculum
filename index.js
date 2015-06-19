@@ -7,44 +7,43 @@ var Readable = require('stream').Readable
 var util = require('util')
 
 util.inherits(Speculum, Readable)
-function Speculum (opts, reader, create, max) {
+function Speculum (opts, reader, create, x) {
   if (!(this instanceof Speculum)) {
-    return new Speculum(opts, reader, create, max)
+    return new Speculum(opts, reader, create, x)
   }
   Readable.call(this, opts)
 
   this.reader = reader
   this.create = create
-  this.max = max || 5
+  this.x = x || 5
 
   this.writers = []
   this.n = 0
-  this.buf = []
-
-  var me = this
-  reader.on('error', function (er) {
-    me.emit('error', er)
-  })
-  reader.on('data', function (chunk) {
-    assert(chunk !== null)
-    var writer = me.next()
-    if (writer) {
-      writer.write(chunk)
-    } else {
-      me.buf.push(chunk)
-    }
-  })
-  reader.on('end', function () {
-    reader.removeAllListeners()
-    me.writers.forEach(function (writer) {
-      writer.end()
-    })
-  })
-  reader.pause()
 }
 
 Speculum.prototype._read = function (size) {
-  this.reader.resume()
+  var reader = this.reader
+  if (!reader._readableState.flowing) {
+    var me = this
+    reader.on('error', function (er) {
+      me.emit('error', er)
+    })
+    reader.on('data', function (chunk) {
+      var writer = me.next()
+      if (writer) {
+        writer.write(chunk)
+      } else {
+        reader.pause()
+      }
+    })
+    reader.on('end', function () {
+      reader.removeAllListeners()
+      me.writers.forEach(function (writer) {
+        writer.end()
+      })
+    })
+  }
+  reader.resume()
 }
 
 Speculum.prototype.deinit = function () {
@@ -54,8 +53,6 @@ Speculum.prototype.deinit = function () {
     delete writer.isWaiting
   })
   this.writers = null
-  assert(this.buf.length === 0, 'should be empty')
-  this.buf = null
 }
 
 function index (arr, n) {
@@ -80,17 +77,19 @@ Speculum.prototype.next = function () {
     while ((chunk = writer.read()) !== null) {
       ok = me.push(chunk)
     }
-    if (ok === false) {
-      writer.isWaiting = !ok
+    if (!ok) {
+      writer.isWaiting = true
       me.once('drain', function () {
         ok = true
-        writer.isWaiting = !ok
+        writer.isWaiting = false
+        me.reader.resume()
         read()
       })
     }
   }
-  if (writers.length < this.max) {
+  if (writers.length < this.x) {
     writer = this.create()
+    assert(!('isWaiting' in writer), 'conflicting property name')
     writer.on('error', function (er) {
       me.emit('error', er)
     })
@@ -105,12 +104,14 @@ Speculum.prototype.next = function () {
     writers.push(writer)
     return writer
   }
-  this.n = index(writers, this.n)
-  writer = writers[this.n]
-  if (writer.isWaiting) {
-    console.log('TODO: Handle waiting writers')
-    return null
+  var n = this.n
+  var times = writers.length
+  while (!writer && times--) {
+    n = index(writers, n)
+    writer = writers[n]
+    if (writer.isWaiting) writer = null
   }
+  if (writer) this.n = n
   return writer
 }
 

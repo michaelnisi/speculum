@@ -1,9 +1,9 @@
-var speculum = require('../')
+var speculum = require('./')
 var stream = require('stream')
 var test = require('tap').test
 var util = require('util')
 
-test('constructor', function (t) {
+test('basics', function (t) {
   util.inherits(Reader, stream.Readable)
   function Reader () {
     stream.Readable.call(this)
@@ -13,22 +13,27 @@ test('constructor', function (t) {
     var ok = false
     do {
       ok = this.push(String(this.count++))
-    } while (this.count < 100 && ok)
+    } while (this.count <= 100 && ok)
     if (this.count >= 100) {
       this.push(null)
     }
   }
+  var opts = { encoding: 'utf8' }
   function create () {
-    return new stream.PassThrough()
+    return new stream.PassThrough(opts)
   }
   var f = speculum
-  var opts = null
-  var reader = new Reader()
+  var reader = new Reader(opts)
   var s = f(opts, reader, create)
   t.plan(2)
   t.ok(s instanceof speculum.Speculum)
+  var chunks = 0
+  s.on('data', function (chunk) {
+    chunks += parseInt(chunk, 10)
+  })
   s.on('end', function () {
-    t.ok(true)
+    var wanted = 100 * (100 + 1) / 2
+    t.is(chunks, wanted)
   })
   s.resume()
 })
