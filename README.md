@@ -4,20 +4,20 @@ The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https:
 
 [![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
 
-A sequential stream's run time `T` grows linearly with the number `N` of chunks (units of work in this case) `C`:
+A sequential stream's run time *T* grows linearly with the number *N* of chunks (units of work in this case) *C*:
 
-`T=N*C`
+*T = N * C*
 
-Concurrent streams divide the time spent by `X`:
+**speculum** divides the time spent by the number of concurrent streams *X*:
 
-`T=N*C/X`
+*T = N * C / X*
 
 ## Example
 
-Compare single stream with five concurrent streams:
+Here is a somewhat contrived, but runnable, example comparing the run time of a single stream with five concurrent streams:
 
 ```js
-uar speculum = require('speculum')
+var speculum = require('speculum')
 var stream = require('stream')
 var util = require('util')
 
@@ -78,7 +78,7 @@ measure(1, function (er) {
 })
 ```
 
-To run this example do:
+Run it with:
 
 ```
 $ node example.js

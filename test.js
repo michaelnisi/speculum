@@ -46,7 +46,6 @@ test('basics', function (t) {
     sum += n
   })
   s.on('end', function () {
-    console.log('end')
     var wanted = 100 * (100 + 1) / 2
     t.is(sum, wanted)
   })

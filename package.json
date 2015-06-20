@@ -1,6 +1,6 @@
 {
   "name": "speculum",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Concurrent transform stream",
   "main": "index.js",
   "scripts": {
