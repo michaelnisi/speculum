@@ -3,37 +3,52 @@ var stream = require('stream')
 var test = require('tap').test
 var util = require('util')
 
+util.inherits(Count, stream.Readable)
+function Count () {
+  stream.Readable.call(this)
+  this.count = 0
+}
+Count.prototype._read = function () {
+  var ok = false
+  do {
+    ok = this.push(String(this.count++))
+  } while (this.count <= 100 && ok)
+  if (this.count >= 100) {
+    this.push(null)
+  }
+}
+
+util.inherits(Echo, stream.Transform)
+function Echo (opts) {
+  stream.Transform.call(this, opts)
+}
+Echo.prototype._transform = function (chunk, enc, cb) {
+  var me = this
+  setTimeout(function () {
+    me.push(chunk)
+    cb()
+  }, Math.random() * 100)
+}
+
 test('basics', function (t) {
-  util.inherits(Reader, stream.Readable)
-  function Reader () {
-    stream.Readable.call(this)
-    this.count = 0
-  }
-  Reader.prototype._read = function () {
-    var ok = false
-    do {
-      ok = this.push(String(this.count++))
-    } while (this.count <= 100 && ok)
-    if (this.count >= 100) {
-      this.push(null)
-    }
-  }
-  var opts = { encoding: 'utf8' }
+  var opts = { encoding: 'utf8', highWaterMark: 0 }
   function create () {
-    return new stream.PassThrough(opts)
+    return new Echo(opts)
   }
   var f = speculum
-  var reader = new Reader(opts)
+  var reader = new Count(opts)
   var s = f(opts, reader, create)
   t.plan(2)
   t.ok(s instanceof speculum.Speculum)
-  var chunks = 0
+  var sum = 0
   s.on('data', function (chunk) {
-    chunks += parseInt(chunk, 10)
+    var n = parseInt(chunk, 10)
+    sum += n
   })
   s.on('end', function () {
+    console.log('end')
     var wanted = 100 * (100 + 1) / 2
-    t.is(chunks, wanted)
+    t.is(sum, wanted)
   })
   s.resume()
 })

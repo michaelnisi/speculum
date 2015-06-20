@@ -1,6 +1,6 @@
 {
   "name": "speculum",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Concurrent transform stream",
   "main": "index.js",
   "scripts": {
@@ -23,5 +23,8 @@
   "homepage": "https://github.com/michaelnisi/speculum",
   "devDependencies": {
     "tap": "^1.2.0"
+  },
+  "dependencies": {
+    "readable-stream": "^2.0.0"
   }
 }

@@ -1,21 +1,23 @@
 # speculum - transform concurrently
 
-The **speculum** Node package provides a readable stream which orchestrates a read stream and a number of transform streams to transform data from a single source concurrently. **speculum** can save time, if the ordering of the emitted results is irrelevant.
+The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream which combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source. If result order is not paramount, **speculum** might be applied to reduce run time.
 
 [![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
 
-Time `T` which the sequential stream takes to perform its tasks grows linearly with the number `N` of requests `R`:
+A sequential stream's run time `T` grows linearly with the number `N` of chunks (units of work in this case) `C`:
 
-`T=N*R`
+`T=N*C`
 
 Concurrent streams divide the time spent by `X`:
 
-`T=(N*R)/X`
+`T=N*C/X`
 
 ## Example
 
+Compare single stream with five concurrent streams:
+
 ```js
-var speculum = require('./')
+uar speculum = require('speculum')
 var stream = require('stream')
 var util = require('util')
 
@@ -75,6 +77,23 @@ measure(1, function (er) {
   measure(5, function (er) {})
 })
 ```
+
+You might run this with:
+
+```
+$ node example.js
+```
+
+## exports
+
+### speculum(opts, reader, create, x)
+
+- `opts` `Object | null` Options passed to the stream constructor
+- `reader` `stream.Readable` The input stream
+- `create` `Function` Factory function to create transform streams
+- `x` `Number | 5` The number of concurrent transform streams to use
+
+The **speculum** module exports a function that returns an instance of the `Speculum` class which extends `stream.Readable`. To access the Speculum class `require('speculum')`. The **speculum** stream round-robins the transform instances while avoiding to overflow its own and the transformers' buffers.
 
 ## Installation
 

@@ -1,3 +1,5 @@
+// example - compare single stream with five concurrent streams
+
 var speculum = require('./')
 var stream = require('stream')
 var util = require('util')
