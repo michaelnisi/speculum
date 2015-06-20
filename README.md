@@ -1,6 +1,6 @@
 # speculum - transform concurrently
 
-The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream which combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source. If result order is not paramount, **speculum** might be applied to reduce run time.
+The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream which combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source. If result order is not paramount, **speculum** can reduce run time.
 
 [![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
 
@@ -78,7 +78,7 @@ measure(1, function (er) {
 })
 ```
 
-You might run this with:
+To run this example do:
 
 ```
 $ node example.js
@@ -88,7 +88,7 @@ $ node example.js
 
 ### speculum(opts, reader, create, x)
 
-- `opts` `Object | null` Options passed to the stream constructor
+- `opts` `Object | null` Options passed to this stream constructor
 - `reader` `stream.Readable` The input stream
 - `create` `Function` Factory function to create transform streams
 - `x` `Number | 5` The number of concurrent transform streams to use

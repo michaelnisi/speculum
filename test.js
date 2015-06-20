@@ -1,5 +1,5 @@
 var speculum = require('./')
-var stream = require('stream')
+var stream = require('readable-stream')
 var test = require('tap').test
 var util = require('util')
 

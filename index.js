@@ -3,7 +3,7 @@
 exports = module.exports = Speculum
 
 var assert = require('assert')
-var Readable = require('stream').Readable
+var Readable = require('readable-stream').Readable
 var util = require('util')
 
 util.inherits(Speculum, Readable)
