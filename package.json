@@ -1,6 +1,6 @@
 {
   "name": "speculum",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Concurrent transform stream",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,9 @@
     "transform",
     "stream"
   ],
+  "engines": {
+    "node": ">=0.12"
+  },
   "author": "Michael Nisi <michael.nisi@gmail.com> (http://michaelnisi.com/)",
   "license": "MIT",
   "bugs": {
@@ -23,8 +26,5 @@
   "homepage": "https://github.com/michaelnisi/speculum",
   "devDependencies": {
     "tap": "^1.2.0"
-  },
-  "dependencies": {
-    "readable-stream": "^2.0.0"
   }
 }
