@@ -27,7 +27,10 @@ Speculum.prototype._read = function (size) {
   var reader = this.reader
   var overflow = this.overflow
   while (overflow.length) {
-    reader.unshift(overflow.shift())
+    var chunk = overflow.shift()
+    reader.unshift(chunk)
+    // As unshifting should be limited, make it observable.
+    this.emit('unshift', chunk)
   }
   if (!this.started) {
     this.started = true
@@ -66,6 +69,7 @@ Speculum.prototype.deinit = function () {
     delete writer.isWaiting
   })
   this.writers = null
+  assert(this.overflow.length === 0, 'TODO: should be empty')
   this.overflow = null
 }
 
@@ -88,7 +92,7 @@ Speculum.prototype.next = function () {
   function read () {
     if (!ok) return
     var chunk
-    while ((chunk = writer.read()) !== null) {
+    while (ok && (chunk = writer.read()) !== null) {
       ok = me.push(chunk)
     }
     if (!ok) {

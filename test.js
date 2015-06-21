@@ -3,17 +3,18 @@ var stream = require('readable-stream')
 var test = require('tap').test
 var util = require('util')
 
+var MAX = 100
+
 util.inherits(Count, stream.Readable)
-function Count () {
-  stream.Readable.call(this)
+function Count (opts, max) {
+  stream.Readable.call(this, opts)
   this.count = 0
+  this.max = max
 }
 Count.prototype._read = function () {
-  var ok = false
-  do {
-    ok = this.push(String(this.count++))
-  } while (this.count <= 100 && ok)
-  if (this.count >= 100) {
+  var str = String(this.count++)
+  this.push(new Buffer(str))
+  if (this.count > MAX) {
     this.push(null)
   }
 }
@@ -31,13 +32,15 @@ Echo.prototype._transform = function (chunk, enc, cb) {
 }
 
 test('basics', function (t) {
-  var opts = { encoding: 'utf8', highWaterMark: 0 }
+  function opts () {
+    return { highWaterMark: Math.round(Math.random() * 16) }
+  }
   function create () {
-    return new Echo(opts)
+    return new Echo(opts())
   }
   var f = speculum
-  var reader = new Count(opts)
-  var s = f(opts, reader, create)
+  var reader = new Count(opts(), MAX)
+  var s = f(opts(), reader, create)
   t.plan(2)
   t.ok(s instanceof speculum.Speculum)
   var sum = 0
@@ -46,10 +49,9 @@ test('basics', function (t) {
     sum += n
   })
   s.on('end', function () {
-    var wanted = 100 * (100 + 1) / 2
+    var wanted = MAX * (MAX + 1) / 2
     t.is(sum, wanted)
   })
-  s.resume()
 })
 
 test('index', function (t) {

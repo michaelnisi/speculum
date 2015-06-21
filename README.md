@@ -1,20 +1,20 @@
 # speculum - transform concurrently
 
-The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream which combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source. If result order is not paramount, **speculum** can reduce run time.
+The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream that combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source (the input stream). If result order is not paramount, **speculum** can reduce run time.
 
 [![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
 
-A sequential stream's run time *T* grows linearly with the number *N* of chunks (units of work in this case) *C*:
+An IO-heavy transform stream's run time *T* grows linearly with the number *N* of chunks (units of IO work) *C*:
 
 *T = N * C*
 
-**speculum** divides the time spent by the number of concurrent streams *X*:
+**speculum** divides the run time by the number of concurrent streams *X*:
 
 *T = N * C / X*
 
 ## Example
 
-Here is a somewhat contrived, but runnable, example comparing the run time of a single stream with five concurrent streams:
+Here is a—somewhat contrived but runnable—example comparing the run time of a single stream with five concurrent streams:
 
 ```js
 var speculum = require('speculum')
@@ -40,11 +40,9 @@ function Count (opts, max) {
   this.max = max
 }
 Count.prototype._read = function () {
-  var ok = false
-  do {
-    ok = this.push(String(this.count++))
-  } while (this.count < this.max && ok)
-  if (this.count >= this.max) {
+  var str = String(this.count++)
+  this.push(new Buffer(str))
+  if (this.count > MAX) {
     this.push(null)
   }
 }
