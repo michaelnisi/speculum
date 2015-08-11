@@ -1,10 +1,10 @@
 # speculum - transform concurrently
 
-The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream that combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source (the input stream). If result order is not paramount, **speculum** can reduce run time.
+The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream that combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source (the input stream). In use cases where result order is not paramount, **speculum** can reduce run time.
 
 [![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
 
-An IO-heavy transform stream's run time *T* grows linearly with the number *N* of chunks (units of IO work) *C*:
+An IO-heavy transform stream’s run time *T* grows linearly with the number *N* of chunks (units of IO work) *C*:
 
 *T = N * C*
 
@@ -14,7 +14,7 @@ An IO-heavy transform stream's run time *T* grows linearly with the number *N* o
 
 ## Example
 
-Here is a—somewhat contrived but runnable—example comparing the run time of a single stream with five concurrent streams:
+Here is a, somewhat contrived but runnable, example comparing the run time of a single stream with five concurrent streams:
 
 ```js
 var speculum = require('speculum')
@@ -86,16 +86,16 @@ $ node example.js
 
 ### speculum(opts, reader, create, x)
 
-- `opts` `Object | null` Options passed to this stream constructor
-- `reader` `stream.Readable` The input stream
-- `create` `Function` Factory function to create transform streams
-- `x` `Number | 5` The number of concurrent transform streams to use
+- `opts` `Object | null` Options passed to this stream constructor.
+- `reader` `stream.Readable` The input stream.
+- `create` `Function` Factory function to create transform streams.
+- `x` `Number | 5` The number of concurrent transform streams to use.
 
-The **speculum** module exports a function that returns an instance of the `Speculum` class which extends `stream.Readable`. To access the Speculum class `require('speculum')`. The **speculum** stream round-robins the transform instances while avoiding to overflow its own and the transformers' buffers.
+The **speculum** module exports a function that returns an instance of the `Speculum` class which extends `stream.Readable`. To access the Speculum class `require('speculum')`. The **speculum** stream round-robins the transform instances while avoiding to overflow its own and the transformers’ buffers.
 
 ## Installation
 
-With [npm](https://npmjs.org/package/speculum) do:
+With [npm](https://npmjs.org/package/speculum), do:
 
 ```
 $ npm install speculum

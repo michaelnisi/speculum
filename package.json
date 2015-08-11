@@ -1,10 +1,11 @@
 {
   "name": "speculum",
-  "version": "1.0.5",
-  "description": "Concurrent transform stream",
+  "version": "3.0.0",
+  "description": "Concurrent transform streams",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_TEST=1 tap -b test.js"
+    "pretest": "standard",
+    "test": "NODE_TEST=1 tap -b test.js --cov"
   },
   "repository": {
     "type": "git",
@@ -16,18 +17,19 @@
     "stream"
   ],
   "engines": {
-    "node": ">=0.10"
+    "node": ">=4"
   },
-  "author": "Michael Nisi <michael.nisi@gmail.com> (http://michaelnisi.com/)",
+  "author": "Michael Nisi <michael.nisi@gmail.com> (http://troubled.pro)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/michaelnisi/speculum/issues"
   },
   "homepage": "https://github.com/michaelnisi/speculum",
   "devDependencies": {
-    "tap": "^1.2.0"
+    "standard": "^8.0.0",
+    "tap": "^7.1.2"
   },
   "dependencies": {
-    "readable-stream": "^2.0.0"
+    "readable-stream": "^2.1.5"
   }
 }
