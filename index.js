@@ -6,7 +6,6 @@ var assert = require('assert')
 var Readable = require('readable-stream').Readable
 var util = require('util')
 
-util.inherits(Speculum, Readable)
 function Speculum (opts, reader, create, x) {
   if (!(this instanceof Speculum)) {
     return new Speculum(opts, reader, create, x)
@@ -17,11 +16,13 @@ function Speculum (opts, reader, create, x) {
   this.create = create
   this.x = x || 5
 
-  this.writers = []
   this.n = 0
   this.overflow = []
   this.started = false
+  this.waiting = new Set()
+  this.writers = []
 }
+util.inherits(Speculum, Readable)
 
 Speculum.prototype._read = function (size) {
   var reader = this.reader
@@ -57,6 +58,9 @@ Speculum.prototype._read = function (size) {
         var chunk = me.overflow.shift()
         writer.end(chunk)
       })
+      me = null
+      overflow = null
+      reader = null
     })
   }
   reader.resume()
@@ -65,10 +69,8 @@ Speculum.prototype._read = function (size) {
 Speculum.prototype.deinit = function () {
   this.reader = null
   this.create = null
-  this.writers.forEach(function (writer) {
-    delete writer.isWaiting
-  })
   this.writers = null
+  this.waiting.clear()
   assert(this.overflow.length === 0, 'TODO: should be empty')
   this.overflow = null
 }
@@ -84,6 +86,10 @@ function ended (writers) {
   })
 }
 
+Speculum.prototype.waits = function (writer) {
+  return this.waiting.has(writer) || writer._writableState.needDrain
+}
+
 Speculum.prototype.next = function () {
   var me = this
   var writer
@@ -96,10 +102,10 @@ Speculum.prototype.next = function () {
       ok = me.push(chunk)
     }
     if (!ok) {
-      writer.isWaiting = true
+      me.waiting.set(writer)
       me.once('drain', function () {
         ok = true
-        writer.isWaiting = false
+        me.waiting.delete(writer)
         me.reader.resume()
         read()
       })
@@ -107,7 +113,6 @@ Speculum.prototype.next = function () {
   }
   if (writers.length < this.x) {
     writer = this.create()
-    assert(!('isWaiting' in writer), 'conflicting property name')
     writer.on('error', function (er) {
       me.emit('error', er)
     })
@@ -118,6 +123,9 @@ Speculum.prototype.next = function () {
         me.push(null)
         me.deinit()
       }
+      me = null
+      writer = null
+      writers = null
     })
     writers.push(writer)
     return writer
@@ -127,7 +135,7 @@ Speculum.prototype.next = function () {
   while (!writer && times--) {
     n = index(writers, n)
     writer = writers[n]
-    if (writer.isWaiting || writer._writableState.needDrain) {
+    if (this.waits(writer)) {
       writer = null
     }
   }

@@ -14,7 +14,7 @@ function Count (opts, max) {
 Count.prototype._read = function () {
   var str = String(this.count++)
   this.push(new Buffer(str))
-  if (this.count > MAX) {
+  if (this.count > this.max) {
     this.push(null)
   }
 }
@@ -33,7 +33,7 @@ Echo.prototype._transform = function (chunk, enc, cb) {
 
 test('basics', function (t) {
   function opts () {
-    return { highWaterMark: Math.round(Math.random() * 16) }
+    return { highWaterMark: Math.round(Math.random() * 16) }
   }
   function create () {
     return new Echo(opts())
