@@ -85,7 +85,7 @@ function measure (x, cb) {
 })(9)
 ```
 
-You can this with:
+You can run this with:
 
 ```
 $ node example.js
