@@ -81,7 +81,7 @@ function index (arr, n) {
 }
 
 function ended (writers) {
-  return !writers.some(function (writer) {
+  return !writers.some((writer) => {
     return !writer._readableState.ended
   })
 }
