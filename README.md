@@ -1,8 +1,9 @@
+[![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
+[![Coverage Status](https://coveralls.io/repos/github/michaelnisi/speculum/badge.svg)](https://coveralls.io/github/michaelnisi/speculum)
+
 # speculum - transform concurrently
 
 The **speculum** [Node](http://nodejs.org/) package provides a [Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream that combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source (the input stream). In use cases where result order is not paramount, **speculum** can reduce run time.
-
-[![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
 
 An IO-heavy transform stream’s run time *T* grows linearly with the number *N* of chunks (units of IO work) *C*:
 
