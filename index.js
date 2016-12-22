@@ -27,8 +27,8 @@ function Speculum (opts, reader, create, x) {
 util.inherits(Speculum, Readable)
 
 Speculum.prototype._read = function (size) {
-  var reader = this.reader
-  var overflow = this.overflow
+  let reader = this.reader
+  let overflow = this.overflow
   while (overflow.length) {
     const chunk = overflow.shift()
     reader.unshift(chunk)
@@ -37,30 +37,28 @@ Speculum.prototype._read = function (size) {
   }
   if (!this.started) {
     this.started = true
-    var me = this
-    reader.on('error', function (er) {
-      me.emit('error', er)
+    reader.on('error', (er) => {
+      this.emit('error', er)
     })
-    reader.on('data', function (chunk) {
-      const writer = me.next()
+    reader.on('data', (chunk) => {
+      const writer = this.next()
       if (writer) {
         if (!writer.write(chunk)) {
-          writer.once('drain', function () {
+          writer.once('drain', () => {
             reader.resume()
           })
         }
       } else {
-        me.overflow.push(chunk)
+        this.overflow.push(chunk)
         reader.pause()
       }
     })
-    reader.on('end', function () {
+    reader.on('end', () => {
       reader.removeAllListeners()
-      me.writers.forEach(function (writer) {
-        const chunk = me.overflow.shift()
+      this.writers.forEach((writer) => {
+        const chunk = this.overflow.shift()
         writer.end(chunk)
       })
-      me = null
       overflow = null
       reader = null
     })
@@ -93,47 +91,45 @@ Speculum.prototype.waits = function (writer) {
 }
 
 Speculum.prototype.next = function () {
-  var me = this
-  var writer = null
-  var writers = this.writers
-  var ok = true
-  function read () {
+  let writer = null
+  let writers = this.writers
+  let ok = true
+  const read = () => {
     if (!ok) return
-    var chunk = null
+    let chunk = null
     while (ok && (chunk = writer.read()) !== null) {
-      ok = me.push(chunk)
+      ok = this.push(chunk)
     }
     if (!ok) {
-      me.waiting.set(writer)
-      me.once('drain', function () {
+      this.waiting.set(writer)
+      this.once('drain', () => {
         ok = true
-        me.waiting.delete(writer)
-        me.reader.resume()
+        this.waiting.delete(writer)
+        this.reader.resume()
         read()
       })
     }
   }
   if (writers.length < this.x) {
     writer = this.create()
-    writer.on('error', function (er) {
-      me.emit('error', er)
+    writer.on('error', (er) => {
+      this.emit('error', er)
     })
     writer.on('readable', read)
-    writer.on('end', function () {
+    writer.on('end', () => {
       writer.removeAllListeners()
-      if (!me._readableState.ended && ended(writers)) {
-        me.push(null)
-        me.deinit()
+      if (!this._readableState.ended && ended(writers)) {
+        this.push(null)
+        this.deinit()
       }
-      me = null
       writer = null
       writers = null
     })
     writers.push(writer)
     return writer
   }
-  var n = this.n
-  var times = writers.length
+  let n = this.n
+  let times = writers.length
   while (!writer && times--) {
     n = index(writers, n)
     writer = writers[n]
@@ -145,7 +141,7 @@ Speculum.prototype.next = function () {
   return writer
 }
 
-if (parseInt(process.env.NODE_TEST, 10) === 1) {
+if (process.mainModule.filename.match(/test/) !== null) {
   exports.Speculum = Speculum
   exports.index = index
 }
