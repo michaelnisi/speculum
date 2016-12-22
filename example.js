@@ -1,3 +1,5 @@
+'use strict'
+
 // example - compare single stream with five concurrent streams
 
 const assert = require('assert')
