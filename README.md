@@ -3,7 +3,7 @@
 
 # speculum - transform concurrently
 
-The **speculum** [Node](http://nodejs.org/) package provides a [Transform](https://nodejs.org/api/stream.html#stream_class_stream_readable) stream that combines a readable input stream and a configurable number of [Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) stream instances to concurrently transform data from a single source (the input stream). In use cases where result order is not paramount, **speculum** can reduce run time.
+**speculum** is a stream multiplier. This [Node.js](https://nodesjs.org) package implements an interface that wraps multiple transform streams into a single, concurrently processing, [stream.Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform). In use cases where result order is not paramount, **speculum** can reduce run time.
 
 An IO-heavy transform stream’s run time *T* grows linearly with the number *N* of chunks (units of IO work) *C*:
 
@@ -13,11 +13,11 @@ An IO-heavy transform stream’s run time *T* grows linearly with the number *N*
 
 *T = N * C / X*
 
-—in theory.
+So far for theory.
 
 ## Example
 
-Here is a, somewhat contrived but runnable, example comparing the run time of a single stream with five concurrent streams:
+Here is a, somewhat contrived but runnable, example comparing the run times from single to ten concurrent streams:
 
 ```js
 'use strict'
@@ -115,7 +115,9 @@ On this MacBook Air (11-inch, Mid 2011), with Node v6.7.0, I get:
 10 X took 104.25 ms
 ```
 
-Clearly, we have to balance workload and overhead to use this efficiently.
+Clearly, we have to balance workload and overhead to use this efficiently. Specifically, we need to estimate—or know—how many chunks of work our stream will have to process, before we can choose an effective number of concurrent streams. But this, of course, varies from use case to use case, depending on duration and consistence of the work to be done, inside the respective transform stream we’re multiplying.
+
+A note about the API, **speculum** is a good fit, if you want to reduce run time by leveraging existing transform streams concurrently. In other use cases, you might be writing a concurrent transform stream form scratch, or might just be wanting to wrap a function into [stream.Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform). In these cases, have a look at [throughv](https://github.com/mcollina/throughv).
 
 ## exports
 
