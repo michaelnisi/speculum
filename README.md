@@ -1,5 +1,5 @@
 [![Build Status](https://secure.travis-ci.org/michaelnisi/speculum.svg)](http://travis-ci.org/michaelnisi/speculum)
-[![Coverage Status](https://coveralls.io/repos/github/michaelnisi/speculum/badge.svg)](https://coveralls.io/github/michaelnisi/speculum)
+[![Coverage Status](https://coveralls.io/repos/github/michaelnisi/speculum/badge.svg?branch=master)](https://coveralls.io/github/michaelnisi/speculum?branch=master)
 
 # speculum - transform concurrently
 
