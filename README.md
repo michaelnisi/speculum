@@ -115,11 +115,13 @@ On this MacBook Air (11-inch, Mid 2011), with Node v6.7.0, I get:
 10 X took 104.25 ms
 ```
 
-Clearly, we have to balance workload and overhead to use this efficiently. Specifically, we need to estimate—or know—how many chunks of work our stream will have to process, before we can choose an effective number of concurrent streams. But this, of course, varies from use case to use case, depending on duration and consistence of the work to be done, inside the respective transform stream we’re multiplying.
+Clearly, we have to balance workload and overhead to use this efficiently. Specifically, we need an idea of how many chunks our stream may need to process, before we can choose an effective number of concurrent streams. But effectivity varies, of course, depending on duration and consistence of the work to be done inside the multiplied stream.
 
-A note about the API, **speculum** is a good fit, if you want to reduce run time by leveraging existing transform streams concurrently. In other use cases, you might be writing a concurrent transform stream form scratch, or might just be wanting to wrap a function into [stream.Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform). In these cases, have a look at [throughv](https://github.com/mcollina/throughv).
+## Considerations
 
-## exports
+**speculum** is a good fit, if you want to reduce run time by leveraging existing transform streams concurrently. In other use cases, where you might be writing a concurrent transform stream form scratch, have a look at [throughv](https://github.com/mcollina/throughv).
+
+## Exports
 
 ### speculum(opts, create, x = 1)
 
