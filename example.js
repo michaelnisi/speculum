@@ -1,6 +1,6 @@
 'use strict'
 
-// example - compare single stream with five concurrent streams
+// example - measure one to ten concurrent streams
 
 const assert = require('assert')
 const speculum = require('./')
@@ -10,6 +10,9 @@ const util = require('util')
 // A transform that does asynchronous work.
 util.inherits(Echo, stream.Transform)
 function Echo (opts) {
+  if (!(this instanceof Echo)) {
+    return new Echo(opts)
+  }
   stream.Transform.call(this, opts)
 }
 Echo.prototype._transform = function (chunk, enc, cb) {
@@ -39,12 +42,13 @@ Count.prototype._read = function () {
 // Leverage x streams to transform, delayed echoing in this example, data from
 // our readable stream.
 function run (x, cb) {
-  const opts = null
-  const reader = new Count(opts, 10)
-  const s = speculum(opts, reader, () => { return new Echo() }, x)
+  const s = speculum(null, Echo, x)
   s.on('end', cb)
   s.on('error', cb)
-  s.resume()
+
+  const reader = new Count({ highWaterMark: 0 }, 10)
+
+  reader.pipe(s).resume()
 }
 
 function measure (x, cb) {
@@ -59,11 +63,10 @@ function measure (x, cb) {
   })
 }
 
-(function go (max, x) {
-  x = x || 1
+(function go (max, x = 1) {
   if (x > max) return
   measure(x, (er) => {
-    assert(!er)
-    go(max, x * 3)
+    assert(!er, er)
+    go(max, x + 1)
   })
-})(9)
+})(10)

@@ -4,144 +4,112 @@
 
 exports = module.exports = Speculum
 
-const assert = require('assert')
-const Readable = require('readable-stream').Readable
+const debug = require('util').debuglog('speculum')
+const stream = require('readable-stream')
 const util = require('util')
 
-function Speculum (opts, reader, create, x) {
+function Speculum (opts, create, x = 1) {
+  if (typeof x !== 'number') throw new Error('multiplier must be number')
+  x = Math.max(x, 1)
   if (!(this instanceof Speculum)) {
-    return new Speculum(opts, reader, create, x)
+    return new Speculum(opts, create, x)
   }
-  Readable.call(this, opts)
+  stream.Transform.call(this, opts)
 
-  this.reader = reader
   this.create = create
-  this.x = x || 5
+  this.x = x
 
-  this.n = 0
-  this.overflow = []
-  this.started = false
-  this.waiting = new Set()
   this.writers = []
-}
-util.inherits(Speculum, Readable)
-
-Speculum.prototype._read = function (size) {
-  let reader = this.reader
-  let overflow = this.overflow
-  while (overflow.length) {
-    const chunk = overflow.shift()
-    reader.unshift(chunk)
-    // As unshifting should be limited, make it observable.
-    this.emit('unshift', chunk)
-  }
-  if (!this.started) {
-    this.started = true
-    reader.on('error', (er) => {
-      this.emit('error', er)
-    })
-    reader.on('data', (chunk) => {
-      const writer = this.next()
-      if (writer) {
-        if (!writer.write(chunk)) {
-          writer.once('drain', () => {
-            reader.resume()
-          })
-        }
-      } else {
-        this.overflow.push(chunk)
-        reader.pause()
-      }
-    })
-    reader.on('end', () => {
-      reader.removeAllListeners()
-      this.writers.forEach((writer) => {
-        const chunk = this.overflow.shift()
-        writer.end(chunk)
-      })
-      overflow = null
-      reader = null
-    })
-  }
-  reader.resume()
+  this.busy = new Set()
 }
 
-Speculum.prototype.deinit = function () {
-  this.reader = null
-  this.create = null
-  this.writers = null
-  this.waiting.clear()
-  assert(this.overflow.length === 0, 'TODO: should be empty')
-  this.overflow = null
-}
+util.inherits(Speculum, stream.Transform)
 
-function index (arr, n) {
-  if (++n >= arr.length) n = 0
-  return n
-}
+Speculum.prototype.createWriter = function () {
+  const writer = this.create()
 
-function ended (writers) {
-  return !writers.some((writer) => {
-    return !writer._readableState.ended
-  })
-}
-
-Speculum.prototype.waits = function (writer) {
-  return this.waiting.has(writer) || writer._writableState.needDrain
-}
-
-Speculum.prototype.next = function () {
-  let writer = null
-  let writers = this.writers
   let ok = true
-  const read = () => {
-    if (!ok) return
-    let chunk = null
+  const write = () => {
+    let chunk
     while (ok && (chunk = writer.read()) !== null) {
       ok = this.push(chunk)
     }
     if (!ok) {
-      this.waiting.set(writer)
       this.once('drain', () => {
         ok = true
-        this.waiting.delete(writer)
-        this.reader.resume()
-        read()
+        write()
       })
     }
   }
-  if (writers.length < this.x) {
-    writer = this.create()
-    writer.on('error', (er) => {
-      this.emit('error', er)
-    })
-    writer.on('readable', read)
-    writer.on('end', () => {
-      writer.removeAllListeners()
-      if (!this._readableState.ended && ended(writers)) {
-        this.push(null)
-        this.deinit()
-      }
-      writer = null
-      writers = null
-    })
-    writers.push(writer)
+  writer.on('readable', write)
+
+  // TODO: Consider replacing the troubled writer with a new instance
+
+  writer.on('error', (er) => {
+    this.emit('error', er)
+  })
+
+  return writer
+}
+
+Speculum.prototype.rotate = function () {
+  const writer = this.writers.shift()
+  this.writers.push(writer)
+  return writer
+}
+
+Speculum.prototype.next = function () {
+  if (this.writers.length < this.x) {
+    const writer = this.createWriter()
+    this.writers.push(writer)
     return writer
   }
-  let n = this.n
-  let times = writers.length
-  while (!writer && times--) {
-    n = index(writers, n)
-    writer = writers[n]
-    if (this.waits(writer)) {
-      writer = null
+  if (this.writers.length === 1) {
+    return this.writers[0]
+  }
+  let i = this.writers.length
+  while (i--) {
+    const writer = this.rotate()
+    if (!this.busy.has(writer)) {
+      return writer
     }
   }
-  if (writer) this.n = n
-  return writer
+  return this.rotate()
+}
+
+Speculum.prototype._transform = function (chunk, enc, cb) {
+  const writer = this.next()
+  let ok = writer.write(chunk)
+  if (!ok) {
+    debug('saturated writer')
+    if (!this.busy.has(writer)) {
+      this.busy.add(writer)
+      writer.once('drain', () => {
+        this.busy.delete(writer)
+      })
+    }
+  }
+  cb()
+}
+
+Speculum.prototype._flush = function (cb) {
+  debug('_flush: %s', this.writers.length)
+  this.writers.forEach(writer => {
+    writer.on('finish', () => {
+      writer.removeAllListeners()
+      this.writers = this.writers.filter(w => { return w !== writer })
+      if (this.writers.length === 0) {
+        this.writers = null
+        this.create = null
+        this.busy.clear()
+        this.busy = null
+        return cb()
+      }
+    })
+    writer.end()
+  })
 }
 
 if (process.mainModule.filename.match(/test/) !== null) {
   exports.Speculum = Speculum
-  exports.index = index
 }
