@@ -96,7 +96,7 @@ Speculum.prototype._flush = function (cb) {
   debug('_flush: %s', this.writers.length)
   this.writers.forEach(writer => {
     writer.on('finish', () => {
-      writer.removeAllListeners()
+      writer.removeAllListeners() // assuming we own these
       this.writers = this.writers.filter(w => { return w !== writer })
       if (this.writers.length === 0) {
         this.writers = null

@@ -25,7 +25,7 @@ Here is a, somewhat contrived but runnable, example comparing the run times from
 // example - measure one to ten concurrent streams
 
 const assert = require('assert')
-const speculum = require('./')
+const speculum = require('speculum')
 const stream = require('stream')
 const util = require('util')
 
@@ -115,11 +115,11 @@ On this MacBook Air (11-inch, Mid 2011), with Node v6.7.0, I get:
 10 X took 104.25 ms
 ```
 
-Clearly, we have to balance workload and overhead to use this efficiently. Specifically, we need an idea of how many chunks our stream may need to process, before we can choose an effective number of concurrent streams. But effectivity varies, of course, depending on duration and consistence of the work to be done inside the multiplied stream.
-
 ## Considerations
 
-**speculum** is a good fit, if you want to reduce run time by leveraging existing transform streams concurrently. In other use cases, where you might be writing a concurrent transform stream form scratch, have a look at [throughv](https://github.com/mcollina/throughv).
+Clearly, we have to balance workload and overhead to use this efficiently. Specifically, we need an idea of how many chunks our stream may need to process, before we can choose an effective number of concurrent streams. But efficiency, of course, varies depending on duration and consistence of the work to be done inside our multiplied stream.
+
+**speculum** is a good fit, if you want to reduce run time by leveraging existing transform streams concurrently, not minding unordered output. In other use cases, where you might be writing a concurrent transform stream from scratch, try [throughv](https://github.com/mcollina/throughv).
 
 ## Exports
 
@@ -129,7 +129,7 @@ Clearly, we have to balance workload and overhead to use this efficiently. Speci
 - `create` `function` A constructor function applied to create transform streams.
 - `x` `Number() | null | undefined` The number of concurrent transform streams defaults to one.
 
-The **speculum** module exports a function that returns an instance of the `Speculum` class which extends `stream.Transform`. To access the `Speculum` class `require('speculum')`. The **speculum** stream round-robins transformers and exposes their buffers and errors through its `stream.Readable` interface.
+The **speculum** module exports a function that returns an instance of the `Speculum` class which extends `stream.Transform`. To access the `Speculum` class `require('speculum')`. The **speculum** stream round-robins transformers, constructed by `create`, and exposes their buffers and errors through its `stream.Readable` interface.
 
 ## Installation
 
