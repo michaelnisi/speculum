@@ -119,7 +119,7 @@ On this MacBook Air (11-inch, Mid 2011), with Node v6.7.0, I get:
 
 Clearly, we have to balance workload and overhead to use this efficiently. Specifically, we need an idea of how many chunks our stream may need to process, before we can choose an effective number of concurrent streams. But efficiency, of course, varies depending on duration and consistence of the work to be done inside our multiplied stream.
 
-**speculum** is a good fit, if you want to reduce run time by leveraging existing transform streams concurrently, not minding unordered output. In other use cases, where you might be writing a concurrent transform stream from scratch, try [throughv](https://github.com/mcollina/throughv).
+**speculum** is a good fit if you want to reduce run time by leveraging existing transform streams concurrently, not minding unordered output. In other use cases, where you might be writing a concurrent transform stream from scratch, try [throughv](https://github.com/mcollina/throughv).
 
 ## Exports
 
