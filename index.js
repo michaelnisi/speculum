@@ -94,16 +94,22 @@ Speculum.prototype._transform = function (chunk, enc, cb) {
 
 Speculum.prototype._flush = function (cb) {
   debug('_flush: %s', this.writers.length)
+  const done = () => {
+    this.writers = null
+    this.create = null
+    this.busy.clear()
+    this.busy = null
+    cb()
+  }
+  if (this.writers.length === 0) {
+    return done()
+  }
   this.writers.forEach(writer => {
     writer.on('finish', () => {
       writer.removeAllListeners() // assuming we own these
       this.writers = this.writers.filter(w => { return w !== writer })
       if (this.writers.length === 0) {
-        this.writers = null
-        this.create = null
-        this.busy.clear()
-        this.busy = null
-        return cb()
+        return done()
       }
     })
     writer.end()
