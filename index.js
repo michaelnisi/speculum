@@ -95,6 +95,7 @@ Speculum.prototype._transform = function (chunk, enc, cb) {
 Speculum.prototype._flush = function (cb) {
   debug('_flush: %s', this.writers.length)
   const done = () => {
+    debug('done')
     this.writers = null
     this.create = null
     this.busy.clear()

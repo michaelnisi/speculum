@@ -30,6 +30,12 @@ Echo.prototype._transform = function (chunk, enc, cb) {
   }, Math.random() * 100)
 }
 
+test('finishing without data', (t) => {
+  const s = speculum(null, () => {}, 1)
+  s.on('finish', () => { t.end() })
+  s.end()
+})
+
 test('saturated writer', { skip: false }, (t) => {
   const s = speculum(null, () => {
     return new Echo({ highWaterMark: 0 })
@@ -86,7 +92,7 @@ test('error emitting writer', { skip: false }, (t) => {
   s.end('ghi')
 })
 
-test('saturated self', (t) => {
+test('saturated self', { skip: false }, (t) => {
   const s = speculum({ highWaterMark: 0 }, () => {
     return new Echo()
   }, 1)
